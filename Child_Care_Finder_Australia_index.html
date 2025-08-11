@@ -1,0 +1,275 @@
+<!--
+Child Care Finder Australia - Single-file static site
+Created for: Aboli Pawar
+Language: Australian English
+
+How to use:
+1) Open this file (index.html) in a browser to preview locally.
+2) To publish on GitHub Pages:
+   - Create a new GitHub repo (public) named e.g. `child-care-finder`.
+   - Upload this file as `index.html` to the repository root (or push via git).
+   - In the repo settings -> Pages, set the source to the `main` branch / root and save.
+   - Your site will be available at: https://<your-github-username>.github.io/<repo-name>/
+
+How to edit listings:
+- Listings are stored in the `listings` array inside the <script id="data"> near the bottom.
+- Add, remove or edit objects there. Each listing uses keys: id, name, suburb, state, description, contact.
+- Alternatively, duplicate a .card element inside the `<div id="listings">` in the HTML.
+
+Notes:
+- This is a static site (no server). The "Add listing" form triggers a mailto: to your inbox (no backend).
+- When you're ready, we can add a simple Google Sheet -> JSON integration or a Netlify Form for submissions.
+
+-->
+
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Child Care Finder Australia — Connecting parents to trusted child care</title>
+  <meta name="description" content="Find family day care and trusted home-based child care across Australia. National directory with quick listings and contact options.">
+  <style>
+    :root{
+      --bg:#f7f9fb; --card:#ffffff; --accent:#0b6efd; --muted:#586069; --radius:12px; --maxw:1000px;
+      --accent-2:#026a4e;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.5;margin:0;background:var(--bg);color:#0b1a2b}
+    .wrap{max-width:var(--maxw);margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+    .brand{display:flex;flex-direction:column}
+    h1{font-size:1.5rem;margin:0}
+    .tag{color:var(--muted);font-size:0.95rem}
+
+    .hero{background:linear-gradient(180deg, rgba(11,110,237,0.08), rgba(2,106,78,0.04));padding:18px;border-radius:var(--radius);display:flex;flex-direction:column;gap:12px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .search, .select{padding:10px;border-radius:10px;border:1px solid rgba(10,20,30,0.08);min-width:180px}
+    .button{background:var(--accent);color:white;padding:10px 14px;border-radius:10px;border:none;cursor:pointer}
+    .button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(11,110,237,0.14)}
+
+    main{margin-top:18px}
+    .grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 4px 18px rgba(11,30,60,0.04)}
+
+    #listings{display:flex;flex-direction:column;gap:12px}
+    .listing{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:10px;border:1px solid rgba(2,6,23,0.04)}
+    .listing h3{margin:0;font-size:1.05rem}
+    .meta{color:var(--muted);font-size:0.92rem}
+    .desc{margin-top:6px;color:#23384a}
+    .contact{margin-top:8px}
+    .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:#eef6ff;color:var(--accent);font-size:0.86rem}
+
+    aside{position:sticky;top:18px;height:fit-content}
+    .howto{font-size:0.95rem;color:#213645}
+    footer{margin-top:22px;text-align:center;color:var(--muted);font-size:0.9rem}
+
+    /* responsive */
+    @media (max-width:900px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.brand{align-items:flex-start}.hero{padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <rect width="24" height="24" rx="6" fill="#ffffff"/>
+        <path d="M6 14c1-4 5-6 8-4" stroke="#026a4e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="6" cy="11" r="1.6" fill="#0b6efd"/>
+        <circle cx="15" cy="8" r="1.6" fill="#0b6efd"/>
+      </svg>
+      <div class="brand">
+        <h1>Child Care Finder Australia</h1>
+        <div class="tag">Connecting parents to trusted child care in Australia</div>
+      </div>
+    </header>
+
+    <section class="hero card" aria-labelledby="hero-heading">
+      <div id="hero-heading"><strong>Find family day care near you</strong> — quick list of home-based carers, with contact details and brief descriptions. Start local, search national.</div>
+
+      <div class="controls">
+        <input id="q" class="search" placeholder="Search provider name, suburb or service (e.g. 'Glenfield')" aria-label="Search listings">
+        <select id="state" class="select" aria-label="Filter by state">
+          <option value="">All Australia</option>
+          <option>NSW</option>
+          <option>VIC</option>
+          <option>QLD</option>
+          <option>WA</option>
+          <option>SA</option>
+          <option>ACT</option>
+          <option>TAS</option>
+          <option>NT</option>
+        </select>
+        <button id="clear" class="button secondary">Clear</button>
+        <button id="addListing" class="button">List your service</button>
+      </div>
+    </section>
+
+    <main class="grid">
+      <section>
+        <div class="card">
+          <h2 style="margin-top:0">About this directory</h2>
+          <p class="howto">Child Care Finder Australia is a simple, free directory highlighting family day care and home-based child care services across Australia. This first version contains sample listings so you can see the layout — you can replace these with real providers when ready.</p>
+        </div>
+
+        <div id="listings" class="card" style="margin-top:12px">
+          <h2 style="margin-top:0">Available family day care listings</h2>
+          <!-- Listing cards will be inserted here by JavaScript -->
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h2 style="margin-top:0">How to use</h2>
+          <ol>
+            <li>Search by name or suburb, or filter by state.</li>
+            <li>Click the contact link to email or call the provider.</li>
+            <li>Providers: use the "List your service" button to email your details for inclusion.</li>
+          </ol>
+        </div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h3 style="margin-top:0">Provider quick tips</h3>
+          <ul style="padding-left:18px;margin-top:8px;color:var(--muted)">
+            <li>Include clear suburb and service hours.</li>
+            <li>Share qualifications and any special programs (ECE, language, cultural focus).</li>
+            <li>Keep descriptions brief — parents skim listings.</li>
+          </ul>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">Add your service</h3>
+          <p style="margin:0.4rem 0">Click "List your service" to open an email form pre-filled with the subject and body so you can send your details (no login required).</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div>Built with care • National listings • Placeholder contact (to be added)</div>
+    </footer>
+  </div>
+
+  <script>
+    // --- SAMPLE DATA ---
+    // Edit the listings array to add real providers. Each object can include: id, name, suburb, state, description, contact
+    const listings = [
+      {
+        id: 1,
+        name: "Sunshine Family Day Care",
+        suburb: "Glenfield",
+        state: "NSW",
+        description: "Home-based educator offering care for children 0-5. Small groups, play-based learning, nutritious snacks provided.",
+        contact: "mailto:example+sunshine@example.com"
+      },
+      {
+        id: 2,
+        name: "Little Lanterns Family Care",
+        suburb: "Brunswick",
+        state: "VIC",
+        description: "Culturally inclusive service with language play sessions and outdoor time daily.",
+        contact: "mailto:example+lanterns@example.com"
+      },
+      {
+        id: 3,
+        name: "Coastal Kids Home Care",
+        suburb: "Gold Coast",
+        state: "QLD",
+        description: "Flexible hours, school pick-up options and nature play. Registered educator with first aid.",
+        contact: "mailto:example+coastal@example.com"
+      },
+      {
+        id: 4,
+        name: "Outback Family Care",
+        suburb: "Alice Springs",
+        state: "NT",
+        description: "Small rural home-based care with a focus on family and community connection.",
+        contact: "mailto:example+outback@example.com"
+      }
+    ];
+
+    const listingsEl = document.getElementById('listings');
+    const q = document.getElementById('q');
+    const stateSel = document.getElementById('state');
+    const clearBtn = document.getElementById('clear');
+    const addBtn = document.getElementById('addListing');
+
+    function renderListings(filterText = '', filterState = ''){
+      // clear previous content (keep heading)
+      const heading = listingsEl.querySelector('h2');
+      listingsEl.innerHTML = '';
+      listingsEl.appendChild(heading);
+
+      const container = document.createElement('div');
+      container.style.display = 'flex';
+      container.style.flexDirection = 'column';
+      container.style.gap = '12px';
+
+      const text = filterText.trim().toLowerCase();
+      const state = filterState.trim().toUpperCase();
+
+      const matches = listings.filter(item => {
+        const hay = (item.name + ' ' + item.suburb + ' ' + item.state + ' ' + item.description).toLowerCase();
+        const matchesText = !text || hay.includes(text);
+        const matchesState = !state || item.state.toUpperCase() === state;
+        return matchesText && matchesState;
+      });
+
+      if(matches.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'listing';
+        empty.innerHTML = '<div style="color:var(--muted)">No listings match your search. Try a different suburb or clear filters.</div>';
+        container.appendChild(empty);
+      } else {
+        matches.forEach(item => {
+          const d = document.createElement('div');
+          d.className = 'listing';
+          d.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+              <div>
+                <h3>${escapeHtml(item.name)}</h3>
+                <div class="meta">${escapeHtml(item.suburb)} • <span class="pill">${escapeHtml(item.state)}</span></div>
+              </div>
+              <div style="text-align:right">
+                <a href="${item.contact}" class="button" style="padding:8px 10px;font-size:0.9rem">Contact</a>
+              </div>
+            </div>
+            <div class="desc">${escapeHtml(item.description)}</div>
+          `;
+          container.appendChild(d);
+        });
+      }
+
+      listingsEl.appendChild(container);
+    }
+
+    function escapeHtml(str){
+      if(!str) return '';
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // initial render
+    // save heading text for later reuse
+    const headingText = listingsEl.querySelector('h2');
+    if(!headingText){
+      // create heading if missing
+      const h = document.createElement('h2'); h.textContent = 'Available family day care listings'; listingsEl.appendChild(h);
+    }
+    renderListings();
+
+    // search events
+    q.addEventListener('input', ()=> renderListings(q.value, stateSel.value));
+    stateSel.addEventListener('change', ()=> renderListings(q.value, stateSel.value));
+    clearBtn.addEventListener('click', ()=>{ q.value=''; stateSel.value=''; renderListings(); });
+
+    // List your service button: opens a mailto prefilled with subject and body
+    addBtn.addEventListener('click', ()=>{
+      const subject = encodeURIComponent('Add my family day care listing - Child Care Finder Australia');
+      const body = encodeURIComponent('Hi%0A%0AI would like to add my family day care listing to Child Care Finder Australia. Please add the following details:%0A%0AName:%0ASuburb:%0AState:%0ADescription (brief):%0AContact (email/phone):%0A%0AThank you.');
+      // replace example@example.com with your real contact address when ready
+      window.location.href = 'mailto:example@example.com?subject=' + subject + '&body=' + body;
+    });
+
+    // If you later want to let visitors submit via a form and add to the page immediately
+    // we can add client-side form handling and a sheet backend (Google Sheets) or Netlify Forms.
+  </script>
+</body>
+</html>
