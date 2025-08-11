@@ -157,8 +157,8 @@ Notes:
         name: "Sumegha's Family Day Care",
         suburb: "Glenfield",
         state: "NSW",
-        description: "Sumegha’s Family Day Care offers more than just care – it offers over a decade of trusted experience in nurturing young minds.
-Located in Glenfield, this warm, home-based environment is run by a passionate and dedicated educator who has been providing high-quality early childhood education and care for over 13 years. At Sumegha’s Family Day Care, your child receives personalised attention in a safe, culturally inclusive, and play-based setting that encourages learning, creativity, and growth. Families value the consistent, individualised care and the strong relationships built through years of experience, trust, and genuine commitment to each child's wellbeing and development.",
+        description: `Sumegha’s Family Day Care offers more than just care – it offers over a decade of trusted experience in nurturing young minds.
+Located in Glenfield, this warm, home-based environment is run by a passionate and dedicated educator who has been providing high-quality early childhood education and care for over 13 years. At Sumegha’s Family Day Care, your child receives personalised attention in a safe, culturally inclusive, and play-based setting that encourages learning, creativity, and growth. Families value the consistent, individualised care and the strong relationships built through years of experience, trust, and genuine commitment to each child's wellbeing and development.`,
         contact: "mailto:sumeghapawar@yahoo.com"
       },
       {
@@ -243,9 +243,14 @@ Located in Glenfield, this warm, home-based environment is run by a passionate a
     }
 
     function escapeHtml(str){
-      if(!str) return '';
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+  if(!str) return '';
+  return str
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g, '&#39;');
+}
 
     // initial render
     // save heading text for later reuse
